@@ -1,4 +1,4 @@
-#Prison Cells After N Days
+# Prison Cells After N Days
 
 Classic test for work with bits in a byte
 
