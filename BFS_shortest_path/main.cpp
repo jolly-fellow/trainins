@@ -3,6 +3,7 @@
 #include <queue>
 #include <optional>
 #include <tuple>
+#include <cstring>
 
 /*
 Shortest path in a Binary Maze
@@ -137,7 +138,24 @@ void print(const vector<vector<item_t>> & m) {
 }
 
 
+void InitArray(int* array, int array_length)
+{
+    int i = 0;
+
+    while (i < array_length)
+    {
+        array[i] = i;
+        i++;
+    }
+}
+
 int main() {
+
+    int asd[10] = {};
+
+//    char* test =
+    InitArray(asd, 10);
+//    cout << "Shortest path = " << test << endl;
 
     matrix_t matrix =
             {
