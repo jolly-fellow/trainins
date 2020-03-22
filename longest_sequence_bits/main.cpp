@@ -4,6 +4,16 @@
 #include <cmath>
 #include <cstring>
 
+
+void print_bits(unsigned n) {
+    /* step 1 */
+    if (n > 1)
+        print_bits(n/2);
+
+    /* step 2 */
+    std::cout << n % 2;
+}
+
 unsigned set_bit(unsigned bit_fld, int n) {
     return bit_fld |= (1 << n);
 }

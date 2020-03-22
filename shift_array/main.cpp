@@ -6,6 +6,11 @@
 #include <climits>
 #include <bitset>
 #include <stack>
+#include <unordered_set>
+#include <random>
+#include <utility>
+#include <map>
+
 
 using namespace std;
 
@@ -138,6 +143,7 @@ Write an efficient algorithm for the following assumptions:
  */
 
 int get_odd_occurrence(vector<int> & v) {
+    const int v_size = v.size();
 /*  non destructive solution
     int res = 0;
     for(auto i: v) {
@@ -147,7 +153,7 @@ int get_odd_occurrence(vector<int> & v) {
 */
 
 // destructive solution
-    for(auto i = 1; i < v.size(); ++i) {
+    for(auto i = 1; i < v_size; ++i) {
         v[i] ^= v[i-1];
     }
     return v.back();
@@ -228,7 +234,7 @@ bool is_permutation(vector<int> &v) {
     unsigned xorsum = 0;
     int v_size = v.size();
     std::cout << endl;
-    for (size_t i = 0; i < v_size; i++) {
+    for (int i = 0; i < v_size; ++i) {
         cout << "xorsum: " << xorsum << " ^ (i + 1): " << i+1 << " ^ v[i]: " << v[i]; // << "xorsum binary ";
 //        show_binrep(xorsum);
         xorsum = (i + 1) ^ static_cast<unsigned>(v[i]) ^ xorsum;
@@ -290,7 +296,7 @@ Write an efficient algorithm for the following assumptions:
  */
 
 int frog_river_one(int x, vector<int> & v) {
-    auto v_size = v.size();
+    const int v_size = v.size();
     vector<bool> bitmap(v_size+1, false);
     if (v_size >= x) {
         auto total = x;
@@ -773,26 +779,323 @@ Write an efficient algorithm for the following assumptions:
 */
 
 int max_product_of_three(vector<int> &v) {
-    int max1 = 0;
-    int max2 = 0;
-    int max3 = 0;
-    size_t v_size = v.size();
+    vector<int> max_num(3,-1000);
+    vector<int> min_neg(2,0);
+
+    const int v_size = v.size();
 
     for (auto i = 0; i < v_size; ++i) {
-        int tmp = v[i] + 1000;
-        if(tmp >= max1) {
-            max3 = max2;
-            max2 = max1;
-            max1 = tmp;
+        if (v[i] < min_neg[0] ) {
+            min_neg[1]=min_neg[0];
+            min_neg[0]=v[i];
+        }
+        else if (v[i] < min_neg[1]) {
+            min_neg[1]=v[i];
+        }
+        if (v[i] > max_num[0]) {
+            max_num[2]=max_num[1];
+            max_num[1]=max_num[0];
+            max_num[0]=v[i];
+        }
+        else if (v[i] > max_num[1]) {
+            max_num[2]=max_num[1];
+            max_num[1]=v[i];
+        }
+        else if (v[i] > max_num[2]) {
+            max_num[2]=v[i];
         }
     }
-    return (max1-1000) * (max2-1000) * (max3-1000);
-    // return (max1 ? max1-1000:1) * (max2 ? max2-1000:1) * (max3 ? max3-1000:1);
+
+    auto res_neg = max_num[0] * min_neg[0] * min_neg[1];
+    auto res_pos = max_num[0] * max_num[1] * max_num[2];
+
+    return max (res_pos, res_neg);
+}
+
+/*
+Write a function
+
+    int solution(vector<int> &A);
+
+that, given an array A consisting of N integers, returns the number of distinct values in array A.
+
+For example, given array A consisting of six elements such that:
+ A[0] = 2    A[1] = 1    A[2] = 1
+ A[3] = 2    A[4] = 3    A[5] = 1
+
+the function should return 3, because there are 3 distinct values appearing in array A, namely 1, 2 and 3.
+
+Write an efficient algorithm for the following assumptions:
+
+        N is an integer within the range [0..100,000];
+        each element of array A is an integer within the range [−1,000,000..1,000,000].
+*/
+int count_distinct(vector<int> &v) {
+    std::unordered_set<int> hash;
+    int res = 0;
+    for (auto i: v) {
+        if (hash.find(i) == hash.end()) {
+            hash.insert(i);
+            res++;
+        }
+    }
+    return res;
+}
+
+/*
+An array A consisting of N integers is given. A triplet (P, Q, R) is triangular if 0 ≤ P < Q < R < N and:
+
+        A[P] + A[Q] > A[R],
+        A[Q] + A[R] > A[P],
+        A[R] + A[P] > A[Q].
+
+For example, consider array A such that:
+  A[0] = 10    A[1] = 2    A[2] = 5
+  A[3] = 1     A[4] = 8    A[5] = 20
+
+Triplet (0, 2, 4) is triangular.
+
+Write a function:
+
+    int solution(vector<int> &A);
+
+that, given an array A consisting of N integers, returns 1 if there exists a triangular triplet for this array and returns 0 otherwise.
+
+For example, given array A such that:
+  A[0] = 10    A[1] = 2    A[2] = 5
+  A[3] = 1     A[4] = 8    A[5] = 20
+
+the function should return 1, as explained above. Given array A such that:
+  A[0] = 10    A[1] = 50    A[2] = 5
+  A[3] = 1
+
+the function should return 0.
+
+Write an efficient algorithm for the following assumptions:
+
+        N is an integer within the range [0..100,000];
+        each element of array A is an integer within the range [−2,147,483,648..2,147,483,647]
+*/
+
+int find_triangle(vector<int> &v) {
+    const int v_size = v.size();
+    if(v_size < 3) { return 0; }
+
+    std::sort(v.begin(), v.end());
+
+    for (auto i = 2; i < v_size; ++i) {
+        if (v[i - 2] > v[i] - v[i - 1]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/*
+We draw N discs on a plane. The discs are numbered from 0 to N − 1. An array A of N non-negative integers, specifying
+the radiuses of the discs, is given. The J-th disc is drawn with its center at (J, 0) and radius A[J].
+
+We say that the J-th disc and K-th disc intersect if J ≠ K and the J-th and K-th discs have at least one common point
+(assuming that the discs contain their borders).
+
+The figure below shows discs drawn for N = 6 and A as follows:
+  A[0] = 1
+  A[1] = 5
+  A[2] = 2
+  A[3] = 1
+  A[4] = 4
+  A[5] = 0
+
+There are eleven (unordered) pairs of discs that intersect, namely:
+
+        discs 1 and 4 intersect, and both intersect with all the other discs;
+        disc 2 also intersects with discs 0 and 3.
+
+Write a function:
+
+    int solution(vector<int> &A);
+
+that, given an array A describing N discs as explained above, returns the number of (unordered) pairs of intersecting discs.
+The function should return −1 if the number of intersecting pairs exceeds 10,000,000.
+
+Given array A shown above, the function should return 11, as explained above.
+
+Write an efficient algorithm for the following assumptions:
+
+        N is an integer within the range [0..100,000];
+        each element of array A is an integer within the range [0..2,147,483,647].
+*/
+
+int number_of_disc_intersections3(vector<int> &v) {
+
+    const auto MAX_INTERSECTIONS = 10000000;
+    int pairs = 0;
+
+    const int v_size = v.size();
+
+    // create an array of pairs, each containing the start and end indices of a disk
+    multimap<int64_t, int64_t> segments;
+
+    // Add the pairs to the array
+    for (int64_t i = 0; i < v_size; ++i) {
+        int64_t radius = v[i];
+        // If radius of the circle is bigger than distance to the origin of the coordinate axis or
+        // the radius is bigger than length of the given array
+        // add this segment to the first point or to the last point.
+        // We do it to avoid of scanning from MIN_INT to MAX_INT
+        // because the task defines the range started from 0 to end of the given array.
+        // We don't need to work outside of this range
+//        int64_t begin = max(0L, i - radius);
+//        int64_t end = min(v_size - 1, i + radius);
+        int64_t begin = i - radius;
+        int64_t end = i + radius;
+
+        segments.insert({begin, end});
+    }
+
+//    for(auto i = 0; i < v_size; ++i ) {
+    for (int i = 0; i < v_size; ++i) {
+//        for(auto e : segments) {
+// # for each disk in order of the *starting* position of the disk, not the centre
+
+// # find the end position of that disk from the array of tuples
+//        auto disk_end = segments.find(i); // intervals[i][1]
+
+// # find the index of the rightmost value less than or equal to the interval-end
+// # this finds the number of disks that have started before disk i ends
+        // count = bisect_right(starts, disk_end )
+        auto it = segments.upper_bound(i);
+
+        auto count = distance(segments.begin(), it);
+/*
+        # subtract current position to exclude previous matches
+        # this bit seemed 'magic' to me, so I think of it like this...
+        # for disk i, i disks that start to the left have already been dealt with
+        # subtract i from count to prevent double counting
+        # subtract one more to prevent counting the disk itself
+        count -= (i+1)
+        pairs += count
+        if pairs > 10000000:
+            return -1
+ */
+        count -= (i+1);
+        pairs += count;
+        if (pairs > MAX_INTERSECTIONS) {
+            return -1;
+        }
+    }
+    return pairs;
+}
+
+int number_of_disc_intersections_sort(vector<int> &v) {
+
+    using segment = std::pair<int, int>;
+    const auto MAX_INTERSECTIONS = 10000000;
+    int intersections = 0;
+
+    size_t v_size = v.size();
+
+    // create an array of pairs, each containing the start and end indices of a disk
+    vector<segment> segments;
+    // reserve the memory for all the pairs to avoid of many allocations
+    segments.reserve(v_size);
+
+    // Add the pairs to the array
+    for (size_t i = 0; i < v_size; ++i) {
+        int radius = v[i];
+        // If radius of the circle is bigger than distance to the origin of the coordinate axis or
+        // the radius is bigger than length of the given array
+        // add this segment to the first point or to the last point.
+        // We do this to avoid of scanning from MIN_INT to MAX_INT
+        // because the task defines the range started from 0 to end of the given array.
+        // We don't need to work outside of this range
+        int begin = max(0, static_cast<int>(i) - radius);
+        int end = min(v_size - 1, i + radius);
+        segments.emplace_back(begin, end);
+    }
+
+    // sort the array by the first entry of each pair: the disk start indices
+    sort(segments.begin(), segments.end());
+
+    for (size_t i = 0; i < v_size; ++i) {
+        // for each disk in order of the *starting* position of the disk, not the centre
+        // find the end position of that disk from the array of tuples
+        auto disk_end = segments[i].second;
+        // find the index of the rightmost value less than or equal to the interval-end
+        // this finds the number of disks that have started before disk i ends
+        auto it = upper_bound(segments.begin(), segments.end(), make_pair(disk_end, 0),
+                              [](segment lhs, segment rhs) -> bool { return lhs.first < rhs.first; });
+
+        auto count = distance(segments.begin(), it);
+
+        // subtract current position to exclude previous matches
+        // for disk i, i disks that start to the left have already been dealt with
+        // subtract i from count to prevent double counting
+        // subtract one more to prevent counting the disk itself
+        count -= (i + 1);
+        intersections += count;
+        if (intersections > MAX_INTERSECTIONS) {
+            return -1;
+        }
+    }
+    return intersections;
+}
+
+int number_of_disc_intersections(vector<int> &v) {
+    const auto MAX_INTERSECTIONS = 10000000;
+    size_t v_size = v.size();
+
+    vector<int> start(v_size, 0), end(v_size, 0);
+
+    // Assume circles as segments on the coordinate axis.
+    // Count all start and end points of the segments intersects on each point of the axis
+    for (size_t i = 0; i < v_size; ++i) {
+        // If radius of the circle is bigger than distance to the origin
+        // of the coordinate axis or
+        // the radius is bigger than length of the given array
+        // add this segment to the first point or to the last point.
+        // We do this to avoid of scanning from MIN_INT to MAX_INT
+        // because the task defines the range started from 0 to end of the given array.
+        // We don't need to work outside of this range
+        start[max(0, static_cast<int>(i) - v[i])]++;
+        end[min(v_size - 1, i + v[i])]++;
+    }
+
+     // Number of "active" segments that is segments which intersect at the point i
+    int active = 0;
+     // Total number of intersections.
+    int intersections = 0;
+    for (size_t i = 0; i < v_size; i++) {
+/*
+ Walk by the array and count the segments which contain the current point “i” on the axis.
+ Whenever a new segment starts at location “i”, it intersects with all existing segment (disks) at that location.
+ That's why we have “active * start[i]” part in the formula. We also need to add the number of intersections for all
+ the segments that just started at location “i”, i.e., the number of intersections within themselves excluding whatever
+ already existed “(start[i] * (start[i] - 1)) / 2”.  For example if started 5 segments (disks) in one point,
+ it will increased by (1+2+3+4+5 intersections, or 5*(5-1) / 2.
+ */
+        intersections += active * start[i] + (start[i] * (start[i] - 1)) / 2;
+        if (intersections > MAX_INTERSECTIONS) {
+            return -1;
+        }
+        active += start[i] - end[i];
+    }
+    return intersections;
 }
 
 
+template< class Iter >
+void fill_with_random_int_values( Iter start, Iter end, int min, int max) {
+    static std::random_device rd;    // you only need to initialize it once
+    static std::mt19937 mte(rd());   // this is a relative big object to create
+
+    std::uniform_int_distribution<int> dist(min, max);
+
+    std::generate(start, end, [&] () { return dist(mte); });
+}
+
 int main() {
-    const auto N = 100000;
+//    const auto N = 100000;
     vector<int> v0 = {};
     vector<int> v1 = {1, 2, 3, 4, 5};
     vector<int> v = {4,2,2,5,1,5,8};
@@ -803,13 +1106,28 @@ int main() {
     vector<int> v5 = {1, 3, 6, 4, 1, 2};
     vector<int> v6 = {10, 10, 10};
     vector<int> v7 = {0, 1, 0, 1, 1};
-    vector<int> v8 = {-3, 1, 2, -2, 5, 6};
+//    vector<int> v8(1000000, 0);
+//    fill_with_random_int_values(v8.begin(), v8.end(), -100, 100);
+
+    vector<int> v8 = {-5, 5, -5, 4}; // 125
+//    vector<int> v8 = {-3, 1, 2, -2, 5, 6}; // 60
+//    vector<int> v8 = {4, 5, 1, 0}; // 20
+//    vector<int> v8 = {-10, -2, -4}; // -80
+
 //    vector<int> test_v(100000, 9);
+
+    vector<int> v9 = {2, 1, 1, 2, 3, 1};
+    vector<int> v10 = {10, 2, 5, 1, 8, 20};
+    // vector<int> v11 = {1,5,2,1,4,0}; // expected 11
+    vector<int> v11 = {1, 2147483647, 0}; // expected 2
 
     vector<int> p = {0};
     vector<int> q = {0};
 
-    cout << "get_pairs_passed_by is " <<  max_product_of_three(v6)  << endl;
+    cout << "number_of_disc_intersections is " <<  number_of_disc_intersections2(v11)  << endl;
+    cout << "find_triangle is " <<  find_triangle(v10)  << endl;
+    cout << "count_distinct is " <<  count_distinct(v9)  << endl;
+    cout << "max_product_of_three is " <<  max_product_of_three(v8)  << endl;
 
     cout << "DNA_impact result:  " << endl;
     print(DNA_impact("C", p, q));
