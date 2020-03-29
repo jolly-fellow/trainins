@@ -10,6 +10,7 @@
 #include <random>
 #include <utility>
 #include <map>
+#include <string>
 
 
 using namespace std;
@@ -831,15 +832,7 @@ Write an efficient algorithm for the following assumptions:
         each element of array A is an integer within the range [−1,000,000..1,000,000].
 */
 int count_distinct(vector<int> &v) {
-    std::unordered_set<int> hash;
-    int res = 0;
-    for (auto i: v) {
-        if (hash.find(i) == hash.end()) {
-            hash.insert(i);
-            res++;
-        }
-    }
-    return res;
+    return std::unordered_set<int>(v.begin(), v.end()).size();
 }
 
 /*
@@ -1094,6 +1087,246 @@ void fill_with_random_int_values( Iter start, Iter end, int min, int max) {
     std::generate(start, end, [&] () { return dist(mte); });
 }
 
+/*
+A string S consisting of N characters is considered to be properly nested if any of the following conditions is true:
+    • S is empty;
+    • S has the form "(U)" or "[U]" or "{U}" where U is a properly nested string;
+    • S has the form "VW" where V and W are properly nested strings.
+For example, the string "{[()()]}" is properly nested but "([)()]" is not.
+Write a function:
+int solution(string &S);
+that, given a string S consisting of N characters, returns 1 if S is properly nested and 0 otherwise.
+For example, given S = "{[()()]}", the function should return 1 and given S = "([)()]", the function should return 0, as explained above.
+Write an efficient algorithm for the following assumptions:
+    • N is an integer within the range [0..200,000];
+    • string S consists only of the following characters: "(", "{", "[", "]", "}" and/or ")".
+ */
+
+int check_brackets(const std::string &s) {
+    if (s.empty()) { return 1; }
+
+    auto s_len = s.length();
+
+    if (s_len % 2) { return 0; } // the length cannot be an odd number.
+
+    std::stack<char> stack;
+
+    auto no_pair = [&stack](char c) {
+        if (stack.empty() || stack.top() != c) {
+            return true;
+        }
+        stack.pop();
+        return false;
+    };
+
+    for (auto c: s) {
+        switch (c) {
+            case ')':
+                if (no_pair('(')) { return 0; }
+                break;
+            case ']':
+                if (no_pair('[')) { return 0; }
+                break;
+            case '}':
+                if (no_pair('{')) { return 0; }
+                break;
+            default:
+                stack.push(c);
+        }
+    }
+    return stack.empty() ? 1 : 0;
+}
+
+/*
+A string S consisting of N characters is called properly nested if:
+    • S is empty;
+    • S has the form "(U)" where U is a properly nested string;
+    • S has the form "VW" where V and W are properly nested strings.
+For example, string "(()(())())" is properly nested but string "())" isn't.
+Write a function:
+int solution(string &S);
+that, given a string S consisting of N characters, returns 1 if string S is properly nested and 0 otherwise.
+For example, given S = "(()(())())", the function should return 1 and given S = "())", the function should return 0, as explained above.
+Write an efficient algorithm for the following assumptions:
+    • N is an integer within the range [0..1,000,000];
+    • string S consists only of the characters "(" and/or ")".
+*/
+
+int check_nested(const string& s) {
+    if (s.empty()) { return 1; }
+
+    if (s.length() % 2) { return 0; } // the length cannot be an odd number.
+
+    int left_brackets = 0;
+
+    for(auto c: s) {
+        if(c == '(') {
+            left_brackets ++;
+        }
+        else if(left_brackets > 0) {
+            left_brackets --;
+        }
+        else {
+            return 0;
+        }
+    }
+    return left_brackets ? 0 : 1;
+}
+
+
+/*
+def solution(H):
+    block_cnt = 0
+    stack = []
+
+    for height in H:
+        # remove all blocks that are bigger than my height
+        while len(stack) != 0 and stack[-1] > height:
+            stack.pop()
+
+        if len(stack) != 0 and stack[-1] == height:
+            # we already paid for this size
+            pass
+        else:
+            # new block is required, push it's size to the stack
+            block_cnt += 1
+            stack.append(height)
+
+    return block_cnt
+ */
+
+
+int stone_wall(const vector<int> &v) {
+    std::stack<int> stack;
+    int stones = 0;
+
+    for (auto height : v) {
+        while (!stack.empty() && stack.top() > height) {
+            stack.pop();
+        }
+        if (!stack.empty() && stack.top() == height) {
+            continue;
+        }
+        stones++;
+        stack.push(height);
+    }
+    return stones;
+}
+
+
+
+/*
+You are given two non-empty arrays A and B consisting of N integers. Arrays A and B represent N voracious fish in
+ a river, ordered downstream along the flow of the river.
+
+The fish are numbered from 0 to N − 1. If P and Q are two fish and P < Q, then fish P is initially upstream of fish Q.
+ Initially, each fish has a unique position.
+
+Fish number P is represented by A[P] and B[P]. Array A contains the sizes of the fish. All its elements are unique.
+ Array B contains the directions of the fish. It contains only 0s and/or 1s, where:
+
+        0 represents a fish flowing upstream,
+        1 represents a fish flowing downstream.
+
+If two fish move in opposite directions and there are no other (living) fish between them, they will eventually meet each other.
+ Then only one fish can stay alive − the larger fish eats the smaller one. More precisely, we say that two fish P and Q
+ meet each other when P < Q, B[P] = 1 and B[Q] = 0, and there are no living fish between them. After they meet:
+
+        If A[P] > A[Q] then P eats Q, and P will still be flowing downstream,
+        If A[Q] > A[P] then Q eats P, and Q will still be flowing upstream.
+
+We assume that all the fish are flowing at the same speed. That is, fish moving in the same direction never meet. The goal is to calculate the number of fish that will stay alive.
+
+For example, consider arrays A and B such that:
+  A[0] = 4    B[0] = 0
+  A[1] = 3    B[1] = 1
+  A[2] = 2    B[2] = 0
+  A[3] = 1    B[3] = 0
+  A[4] = 5    B[4] = 0
+
+Initially all the fish are alive and all except fish number 1 are moving upstream. Fish number 1 meets fish number 2 and eats it,
+ then it meets fish number 3 and eats it too. Finally, it meets fish number 4 and is eaten by it. The remaining two fish,
+ number 0 and 4, never meet and therefore stay alive.
+
+Write a function:
+
+    int solution(vector<int> &A, vector<int> &B);
+
+that, given two non-empty arrays A and B consisting of N integers, returns the number of fish that will stay alive.
+
+For example, given the arrays shown above, the function should return 2, as explained above.
+
+Write an efficient algorithm for the following assumptions:
+
+        N is an integer within the range [1..100,000];
+        each element of array A is an integer within the range [0..1,000,000,000];
+        each element of array B is an integer that can have one of the following values: 0, 1;
+        the elements of A are all distinct.
+*/
+
+
+int fish_stream(const vector<int> &fish, const vector<int> &directions) {
+    const auto UPSTREAM = 0;
+    int left = 0, fish_num = fish.size();
+    std::stack<int> stack;
+
+    // scan the stream
+    for(int i = 0; i < fish_num; ++i) {
+        // if fish moves upstream
+        if(UPSTREAM == directions[i]) {
+            // compare it with downstream fish in front of it and remove
+            // from the stack all fish less than our one because they are eaten
+            while(!stack.empty() && (stack.top() < fish[i])) {
+                stack.pop();
+            }
+            // if we have no opposite fish which moves downstream just count our fish and
+            // leave it in the stream.
+            if(stack.empty()) {
+                left++;
+            }
+        }
+        // if fish moves downstream add it to the stack
+        else {
+            stack.push(fish[i]);
+        }
+    }
+    return left + stack.size();
+}
+
+/*
+ An array A consisting of N integers is given. The dominator of array A is the value that occurs in more than half of the elements of A.
+
+For example, consider array A such that
+ A[0] = 3    A[1] = 4    A[2] =  3
+ A[3] = 2    A[4] = 3    A[5] = -1
+ A[6] = 3    A[7] = 3
+
+The dominator of A is 3 because it occurs in 5 out of 8 elements of A (namely in those with indices 0, 2, 4, 6 and 7) and 5 is more than a half of 8.
+
+Write a function
+
+    int solution(vector<int> &A);
+
+that, given an array A consisting of N integers, returns index of any element of array A in which the dominator of A occurs. The function should return −1 if array A does not have a dominator.
+
+For example, given array A such that
+ A[0] = 3    A[1] = 4    A[2] =  3
+ A[3] = 2    A[4] = 3    A[5] = -1
+ A[6] = 3    A[7] = 3
+
+the function may return 0, 2, 4, 6 or 7, as explained above.
+
+Write an efficient algorithm for the following assumptions:
+
+        N is an integer within the range [0..100,000];
+        each element of array A is an integer within the range [−2,147,483,648..2,147,483,647]
+*/
+
+int dominator(vector<int> &A) {
+
+}
+
+
 int main() {
 //    const auto N = 100000;
     vector<int> v0 = {};
@@ -1106,6 +1339,7 @@ int main() {
     vector<int> v5 = {1, 3, 6, 4, 1, 2};
     vector<int> v6 = {10, 10, 10};
     vector<int> v7 = {0, 1, 0, 1, 1};
+
 //    vector<int> v8(1000000, 0);
 //    fill_with_random_int_values(v8.begin(), v8.end(), -100, 100);
 
@@ -1124,7 +1358,14 @@ int main() {
     vector<int> p = {0};
     vector<int> q = {0};
 
-    cout << "number_of_disc_intersections is " <<  number_of_disc_intersections2(v11)  << endl;
+    cout << "fish_stream({4, 3, 2, 1, 5}, {0, 1, 0, 0, 0}) is " <<  fish_stream({4, 3, 2, 1, 5}, {0, 1, 0, 0, 0}) << " expected 2" << endl;
+
+    cout << "stone_wall(8, 8, 5, 7, 9, 8, 7, 4, 8) is " <<  stone_wall({8, 8, 5, 7, 9, 8, 7, 4, 8}) << " expected 7" << endl; // expected 7
+    cout << "check_nested(\"(()(())())\") is " <<  check_nested("(()(())())") << endl; // expected 1
+    cout << "check_nested(\"())\") is " <<  check_nested("())") << endl; // expected 0
+    cout << "check_brackets(\"{[()()]}\") is " <<  check_brackets("{[()()]}") << endl; // expected 1
+    cout << "check_brackets(\"([)()]\") is " <<  check_brackets("([)()]") << endl; // expected 0
+    cout << "number_of_disc_intersections is " <<  number_of_disc_intersections(v11)  << endl;
     cout << "find_triangle is " <<  find_triangle(v10)  << endl;
     cout << "count_distinct is " <<  count_distinct(v9)  << endl;
     cout << "max_product_of_three is " <<  max_product_of_three(v8)  << endl;
