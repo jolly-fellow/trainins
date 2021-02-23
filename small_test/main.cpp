@@ -2,8 +2,9 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <unordered_set>
 #include <optional>
+#include <sstream>
 
 using namespace std;
 
@@ -224,118 +225,389 @@ int main() {
     return 0;
 }
 
-#endif
+
 
 #include <bits/stdc++.h>
 
 using namespace std;
 
-vector<string> split_string(string);
+string ltrim(const string &);
+string rtrim(const string &);
+vector<string> split(const string &);
 
-// Complete the checkMagazine function below.
-void checkMagazine(vector<string> magazine, vector<string> note) {
-
-/*
-    unordered_map<string, int> words;
-
-    for (auto &it: magazine) {
-        words[it]++;
-    }
-
-    for (auto &it: note) {
-        if (words[it]>0) {
-            words[it]--;
+long countTriplets() { // (const vector<long>&, long ) {
+    vector<long> arr {1, 2, 2, 4};
+    long r = 2;
+    long count = 0;
+    // ratio: a, b=a*r, c=a*r*r
+    unordered_map<long,long> b; // key=possible 2nd triplet members from values of a, value=count
+    unordered_map<long,long> c; // key=possible 3rd triplet members from values of b, value=count
+    for(const long i : arr) {
+        const auto next = i * r;
+        if(c.count(i) > 0) {
+            count += c[i];
         }
-        else
-            cout << "No";
-        return;
+        if(b.count(i) > 0) {
+            c[next] += b[i];
+        }
+        ++b[next];
     }
-    cout << "Yes";
-*/
+    return count;
+}
+#endif
 
-    unordered_multiset<string> set(magazine.begin(), magazine.end());
+template<typename T>
+void adl(T) {
+    cout << "T";
+}
 
-    for (auto &word : note) {
-        auto p = set.find(word);
-        if (p != set.end()) {
-            set.erase(p);
-        } else {
-            cout << "No";
-            return;
+struct S {
+
+};
+
+template<typename T>
+void call_adl(T t) {
+    adl(S());
+    adl(t);
+}
+
+void adl(S) {
+    cout << "S";
+}
+
+template<typename T>
+class Foo {
+    T tVar;
+public:
+    Foo() {}
+    Foo(T t): tVar(t) {}
+};
+
+class FooDerived: public Foo<std::string> {
+
+};
+
+
+
+
+template<template<typename> class>
+struct X {
+    X() {
+        cout << "1" ;
+    }
+};
+
+template<typename>
+struct Y {};
+
+template<typename T>
+using Z = Y<T>;
+
+template<>
+struct X<Y> {
+    X() { cout << "2" ; }
+};
+
+
+struct A {
+    A() { throw 2; }
+};
+
+struct B {
+    B() {
+        try {
+            A a;
+        }
+        catch (int i) {
+            cout << i;
         }
     }
-    cout << "Yes";
+};
+
+
+int countPairs(vector<int> projectCosts, int target) {
+    unordered_map<int, int> m;
+    for (int i : projectCosts) {
+        m[i]++;
+    }
+
+    int count = 0;
+
+    for (auto i : m) {
+        if ((i.second > 1) || (m.count(i.first + target))) {
+            ++count;
+        }
+    }
+    return count;
+
+}
+
+int findPairs(vector<int>& nums, int k) {
+    unordered_map<int, int> m;
+    for (int n : nums) m[n]++;
+    int cnt = 0;
+    for (auto p : m) {
+        if ((!k && p.second > 1)
+            || (k && m.count(p.first + k))) ++cnt;
+    }
+    return cnt;
+}
+
+int min_steps(string s, string t) {
+    int mymap1[26] = { 0 };
+    int mymap2[26] = { 0 };
+
+    for (int i = 0; i < s.length(); i++) {
+        mymap1[s[i] - 'a']++;
+        mymap2[t[i] - 'a']++;
+    }
+
+    int count = 0;
+
+    for (int i = 0; i < 26; i++) {
+        if (mymap2[i] > mymap1[i])
+            count += mymap2[i] - mymap1[i];
+    }
+    return count;
+}
+
+void f(vector<string> v, int n) {
+    for(auto s: v) {
+        int size_s = s.size();
+        if(size_s < 1) { cout << -1; }
+        if(size_s % 2 == 0) {
+            string sub1 = s.substr(0,size_s / 2);
+            string sub2 = s.substr(size_s / 2);
+            cout << min_steps(sub1,sub2);
+        }
+    }
+}
+
+class asd {
+public:
+    int vvv = 5;
+    void aaa() {
+
+    }
+};
+
+
+int removeDuplicates(vector<int>& v) {
+    int v_size = v.size();
+    int p = 1, dups = 0;
+    for(int i = 0; (i < v_size) && (p < v_size); ++i, ++p) {
+        while( (v[i] == v[p]) && (p < v_size) ) {
+            ++ p;
+            ++ dups;
+        }
+        if(p < v_size) {
+            v[i+1] = v[p];
+        }
+    }
+    return v_size - dups;
 }
 
 
 
-int main()
-{
-    string mn_temp;
-    getline(cin, mn_temp);
+using ppid_t = int;
+using pid_t = int;
 
-    vector<string> mn = split_string(mn_temp);
+struct process_t {
+    ppid_t ppid;
+    pid_t pid;
+    string name;
+    vector<pid_t> children;
+};
 
-    int m = stoi(mn[0]);
+using processes_t = unordered_map<ppid_t, process_t>;
 
-    int n = stoi(mn[1]);
+processes_t proc_map;
 
-    string magazine_temp_temp;
-    getline(cin, magazine_temp_temp);
+void parse_input() {
 
-    vector<string> magazine_temp = split_string(magazine_temp_temp);
+    process_t root;
+    root.pid = 0;
+    root.ppid = 0;
+    root.name = "";
+    proc_map.emplace(root.ppid, root);
 
-    vector<string> magazine(m);
+    for (std::string line; std::getline(std::cin, line); ) {
+        std::istringstream iss(line);
+        process_t process;
+        iss >> process.pid >> process.ppid >> process.name;
 
-    for (int i = 0; i < m; i++) {
-        string magazine_item = magazine_temp[i];
+        if(proc_map.count(process.pid) == 0) {
+            proc_map.emplace(process.pid, process);
+            proc_map[process.ppid].children.push_back(process.pid);
+        }
+        else {
+            cout << "error. It should never happens"; exit(1);
+        }
+    }
+}
 
-        magazine[i] = magazine_item;
+void print_proc(pid_t pid) {
+
+    static string tabs;
+    auto process = proc_map[pid];
+    cout << tabs << "PPID: " << process.ppid << " PID: " << process.pid << " name: " <<  process.name << endl;
+    for(auto p: process.children) {
+        tabs.push_back('\t');
+        print_proc(p);
+        tabs.pop_back();
+    }
+}
+
+const string IsOneEditAway(string s1, string s2) {
+
+    int s1_size = s1.size();
+    int s2_size = s2.size();
+
+    if(s1 == s2) {
+        return "NOTHING";
     }
 
-    string note_temp_temp;
-    getline(cin, note_temp_temp);
+    if (s2_size == 0 || s1_size == 0) {
+        return "IMPOSSIBLE";
+    }
 
-    vector<string> note_temp = split_string(note_temp_temp);
+    if ((s1_size - s2_size) > 1 || (s2_size - s1_size) > 1  ) {
+        return "IMPOSSIBLE";
+    }
 
-    vector<string> note(n);
+    int i = 0, j = 0;
+    int diff = 0;
+    while (i < s1_size && j < s2_size) {
+        char f = s1[i];
+        char s = s2[j];
+        if (f != s) {
+            diff++;
+            if (s1_size > s1_size)
+                i++;
+            if (s1_size > s1_size)
+                j++;
+            if (s1_size == s1_size)
+                i++; j++;
+        }
+        else{
+            i++; j++;
+        }
+        if (diff > 1) {
+            return "IMPOSSIBLE";
+        }
+    }
+
+    sort(s1.begin(), s1.end());
+    sort(s2.begin(), s2.end());
+
+    if (diff == 1 && s1 == s2) {
+        return "MOVE";
+    }
+
+    if (diff == 1 && s1_size != s2_size) {
+        return "REMOVE";
+    }
+
+    return "INSERT";
+
+}
+
+
+int main() {
+//    parse_input();
+//    print_proc(0);
+
+// ----------
+    vector<int> v{1,1,1,1};
+
+//    cout << removeDuplicates(v) << endl;
+
+/*
+    float g = 10;
+    void *ptr=&g;
+    float f=*(float *)ptr;
+
+    cout << f;
+
+    int x=10, a=-3;
+    x=+a;
+    printf("%d",x);
+
+    cout << endl;
+
+
+
+    ofstream fout(getenv("OUTPUT_PATH"));
+
+    string nr_temp;
+    getline(cin, nr_temp);
+
+    vector<string> nr = split(rtrim(nr_temp));
+
+    int n = stoi(nr[0]);
+
+    long r = stol(nr[1]);
+
+    string arr_temp_temp;
+    getline(cin, arr_temp_temp);
+
+    vector<string> arr_temp = split(rtrim(arr_temp_temp));
+
+    vector<long> arr(n);
 
     for (int i = 0; i < n; i++) {
-        string note_item = note_temp[i];
+        long arr_item = stol(arr_temp[i]);
 
-        note[i] = note_item;
+        arr[i] = arr_item;
     }
+*/
 
-    checkMagazine(magazine, note);
+//    long ans = countTriplets(arr, r);
+//    long ans = countTriplets();
+
+//    fout << ans << "\n";
+
+//    fout.close();
 
     return 0;
 }
+/*
+string ltrim(const string &str) {
+    string s(str);
 
-vector<string> split_string(string input_string) {
-    string::iterator new_end = unique(input_string.begin(), input_string.end(), [] (const char &x, const char &y) {
-        return x == y and x == ' ';
-    });
+    s.erase(
+            s.begin(),
+            find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace)))
+    );
 
-    input_string.erase(new_end, input_string.end());
-
-    while (input_string[input_string.length() - 1] == ' ') {
-        input_string.pop_back();
-    }
-
-    vector<string> splits;
-    char delimiter = ' ';
-
-    size_t i = 0;
-    size_t pos = input_string.find(delimiter);
-
-    while (pos != string::npos) {
-        splits.push_back(input_string.substr(i, pos - i));
-
-        i = pos + 1;
-        pos = input_string.find(delimiter, i);
-    }
-
-    splits.push_back(input_string.substr(i, min(pos, input_string.length()) - i + 1));
-
-    return splits;
+    return s;
 }
+
+string rtrim(const string &str) {
+    string s(str);
+
+    s.erase(
+            find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(),
+            s.end()
+    );
+
+    return s;
+}
+
+vector<string> split(const string &str) {
+    vector<string> tokens;
+
+    string::size_type start = 0;
+    string::size_type end = 0;
+
+    while ((end = str.find(" ", start)) != string::npos) {
+        tokens.push_back(str.substr(start, end - start));
+
+        start = end + 1;
+    }
+
+    tokens.push_back(str.substr(start));
+
+    return tokens;
+}
+*/
