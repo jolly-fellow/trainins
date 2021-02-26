@@ -1322,15 +1322,20 @@ Write an efficient algorithm for the following assumptions:
         each element of array A is an integer within the range [−2,147,483,648..2,147,483,647]
 */
 
+/*
 int dominator(vector<int> &A) {
 
+    return 0;
 }
-
+*/
 
 int main() {
+
+
+
 //    const auto N = 100000;
     vector<int> v0 = {};
-    vector<int> v1 = {1, 2, 3, 4, 5};
+    vector<int> v1 = {0, 1, 2, 3, 4, 5, 6, 7};
     vector<int> v = {4,2,2,5,1,5,8};
 //    vector<int> v = {4, 1, 3, 2};
     vector<int> v2 = {9, 3, 9, 3, 9, 7, 9};
@@ -1339,6 +1344,12 @@ int main() {
     vector<int> v5 = {1, 3, 6, 4, 1, 2};
     vector<int> v6 = {10, 10, 10};
     vector<int> v7 = {0, 1, 0, 1, 1};
+
+    right_rotate_reverse(v1, 2);
+
+    cout << "right rotated: " << endl;
+    print(v1);
+
 
 //    vector<int> v8(1000000, 0);
 //    fill_with_random_int_values(v8.begin(), v8.end(), -100, 100);
