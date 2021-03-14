@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <optional>
 #include <sstream>
+#include <memory>
 
 using namespace std;
 
@@ -513,12 +514,219 @@ const string IsOneEditAway(string s1, string s2) {
 }
 
 
+void merge(int A[], int m, int B[], int n) {
+    int p = m-1, q = n-1, i = m+n-1;
+    while ( q>=0 ) {
+        if ( p<0 || B[q] >= A[p] )
+            A[i--] = B[q--];
+        else
+            A[i--] = A[p--];
+    }
+}
+
+void merge(vector<int>& v1, int s1, vector<int>& v2, int s2) {
+
+    int v1_size = v1.size() - 1;
+    --s1, --s2;
+
+    while( s2 >= 0) {
+        if ( s1 < 0 || v2[s2] >= v1[s1] )
+            v1[v1_size--] = v2[s2--];
+        else
+            v1[v1_size--] = v1[s1--];
+    }
+}
+
+void print_vector(const vector<int> & v) {
+    for (auto const& i : v) {
+        std::cout << i << ' ';
+    }
+}
+
+void print_vector(const vector<string> & v) {
+    for (auto const& i : v) {
+        std::cout << i << ' ';
+    }
+}
+
+class Solution {
+public:
+    struct TrieNode {
+        vector<TrieNode*> child;
+        string word;
+        explicit TrieNode() : child(26, nullptr) {}
+    };
+
+    static TrieNode* buildTrie(vector<string>& words) {
+        auto * root = new TrieNode();
+        for (const string& w : words) {
+            TrieNode * curr = root;
+            for (char c : w) {
+                int i = c - 'a';
+                if (curr->child[i] == nullptr) { curr->child[i] = new TrieNode(); }
+                curr = curr->child[i];
+            }
+            curr->word = w;
+        }
+        return root;
+    }
+
+    static vector<string> findWords(vector<vector<char>>& board, vector<string>& words) {
+        vector<string> result;
+        int board_x_size = board.size();
+        int board_y_size = board[0].size();
+        TrieNode* root = buildTrie(words);
+        for(int i = 0; i < board_x_size; ++i) {
+            for (int j = 0; j < board_y_size; ++j) {
+                dfs(board, i, j, root, result);
+            }
+        }
+        return result;
+    }
+
+    static void dfs(vector<vector<char>>& board, int i, int j, TrieNode* curr, vector<string>& out) {
+        char c = board[i][j];
+        if(c == '#' || curr->child[c - 'a'] == nullptr) return;
+        curr = curr->child[c - 'a'];
+        if (!curr->word.empty()) {
+            out.push_back(curr->word);
+            curr->word.clear();
+        }
+        board[i][j] = '#';
+        if(i > 0) dfs(board, i - 1, j , curr, out);
+        if(j > 0) dfs(board, i, j - 1, curr, out);
+        if(i < board.size() - 1) dfs(board, i + 1, j, curr, out);
+        if(j < board[0].size() - 1) dfs(board, i, j + 1, curr, out);
+        board[i][j] = c;
+    }
+};
+
+
+class Trie {
+/*
+    struct TrieNode {
+        bool end = false;
+        vector<TrieNode*> links;
+        TrieNode() : links(26, nullptr) {}
+
+        bool has_key(char ch) {
+            return links[ch -'a'] != nullptr;
+        }
+
+        void put(char ch, TrieNode * node) {
+            links[ch -'a'] = node;
+        }
+
+        TrieNode * get(char ch) {
+            return links[ch -'a'];
+        }
+        void setEnd() {
+            end = true;
+        }
+        bool isEnd() {
+            return end;
+        }
+    } root;
+*/
+    struct TrieNode {
+        bool end = false;
+        unordered_map<char, unique_ptr<TrieNode>> links;
+
+        void put(char ch, unique_ptr<TrieNode> node) {
+            links.emplace(ch, move(node));
+        }
+
+        bool has_key(char ch) {
+            return links.count(ch); // if contains then count > 0;
+        }
+
+        TrieNode * get(char ch) {
+            return links[ch].get();
+        }
+        void setEnd() {
+            end = true;
+        }
+        bool isEnd() {
+            return end;
+        }
+    } root;
+
+    // search a prefix or whole key in trie and
+    // returns the node where search ends
+    TrieNode * searchPrefix(const string & word) {
+        TrieNode * node = &root;
+        for (int i = 0; i < word.length(); i++) {
+            char curLetter = word[i];
+            if (node->has_key(curLetter)) {
+                node = node->get(curLetter);
+            }
+            else {
+                return nullptr;
+            }
+        }
+        return node;
+    }
+
+public:
+    /** Initialize your data structure here. */
+    Trie() {
+    }
+
+    /** Inserts a word into the trie. */
+    void insert(const string & word) {
+
+        TrieNode * node = &root;
+
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word[i];
+            if (!node->has_key(ch)) {
+                node->put(ch, std::make_unique<TrieNode>());
+            }
+            node = node->get(ch);
+        }
+        node->setEnd();
+    }
+
+    /** Returns if the word is in the trie. */
+    bool search(const string & word) {
+        TrieNode * node = searchPrefix(word);
+        return node != nullptr && node->isEnd();
+    }
+
+    /** Returns if there is any word in the trie that starts with the given prefix. */
+    bool startsWith(const string & prefix) {
+        TrieNode * node = searchPrefix(prefix);
+        return node != nullptr;
+    }
+};
+
+
 int main() {
+
+/*
+    Trie trie;
+    trie.insert("apple");
+    cout << trie.search("apple") << endl;   // return True
+    cout << trie.search("app") << endl;     // return False
+    cout << trie.startsWith("app") << endl; // return True
+    trie.insert("app");
+    cout << trie.search("app") << endl;     // return True
+*/
+    vector<vector<char>> board {{'o','a','a','n'},{'e','t','a','e'},{'i','h','k','r'},{'i','f','l','v'}};
+    vector<string> words {"oath","pea","eat","rain"};
+    auto result = Solution::findWords(board, words);
+
+    print_vector(result);
+
 //    parse_input();
 //    print_proc(0);
 
 // ----------
-    vector<int> v{1,1,1,1};
+    vector<int> v1{1,2,3,0,0,0};
+    vector<int> v2{2,5,6};
+
+//    merge(v1, 3, v2, 3);
+//    print_vector(v1);
 
 //    cout << removeDuplicates(v) << endl;
 
