@@ -40,16 +40,16 @@ vector<node_t> expand(const matrix_t & m, const node_t & p) {
     int rows = m.size();
     int cols = m[0].size();
 
-
+/*
    // For vertical and horizontal neighbors only
     vector<int> row_dir = { -1,  0, 1, 0 };
     vector<int> col_dir = {  0, -1, 0, 1 };
+*/
 
-/*
     // For all 8 neighbors
     vector<int> row_dir = { -1,  0, 1, 0, -1, +1, -1,  1 };
     vector<int> col_dir = {  0, -1, 0, 1, -1, +1,  1, -1 };
-*/
+
 
     for (auto i = 0; i < row_dir.size(); ++i) {
         int new_row = p.row + row_dir[i];
@@ -98,10 +98,7 @@ std::optional<int> BFS_r(matrix_t & matrix, const node_t & start, const node_t &
 
 }
 
-std::optional<int> BFS_asd(matrix_t & matrix, const node_t & start, const node_t & dest) {
 
-
-}
 
 std::optional<int> BFS(matrix_t & matrix, const node_t & start, const node_t & dest) {
 
@@ -155,12 +152,55 @@ void InitArray(int* array, int array_length)
     }
 }
 
+// vector<vector<int>>
+// vector<vector<bool>>
+
+/*
+struct coord_t {
+    int row = 0, col = 0;
+};
+
+
+std::optional<int> BFS2(vector<vector<int>> & matrix, const coord_t & start, const coord_t & dest) {
+
+    vector<vector<bool>> visited(9, <vector<bool>(9, false));
+
+    int s = matrix[start.row][start.col];
+    int d = matrix[dest.row][dest.col];
+    // can't start into the wall
+    if ( (0 == s) || (0 == d) ) {
+        return nullopt;
+    }
+
+    queue<node_t> q;
+
+
+    s.set_visited(true);
+    q.push(start);
+    while (!q.empty()) {
+        node_t node = q.front();
+        if (node == dest) {
+            return node.distance + 1;
+        }
+        q.pop();
+        for (auto child : expand(matrix, node)) {
+            auto & n = matrix[child.row][child.col];
+            if (!n.is_visited() && (n.get_value() == 1)) {
+                n.set_visited(true);
+                child.distance = node.distance + 1;
+                q.push(child);
+            }
+        }
+    }
+    return nullopt;
+}
+*/
+
 int main() {
 
     int asd[10] = {};
 
-//    char* test =
-    InitArray(asd, 10);
+//    char* test = InitArray(asd, 10);
 //    cout << "Shortest path = " << test << endl;
 
     matrix_t matrix =
@@ -173,13 +213,14 @@ int main() {
                       { 1, 0, 1, 1, 1, 1, 0, 1, 0, 0 },
                       { 1, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
                       { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
+                      { 1, 1, 0, 0, 0, 0, 1, 0, 0, 1 },
                       { 1, 1, 0, 0, 0, 0, 1, 0, 0, 1 }
             };
 
     print(matrix);
 
     node_t start = { 0, 0 };
-    node_t dest = { 8, 0 };
+    node_t dest = { 9, 9 };
 
     auto dist = BFS(matrix, start, dest);
 
