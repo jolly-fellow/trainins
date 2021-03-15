@@ -602,6 +602,76 @@ public:
 };
 
 
+class Solution2 {
+public:
+    struct TrieNode {
+        vector<unique_ptr<TrieNode>> links;
+        string word;
+        TrieNode() : links(26) {}
+
+        bool has_key(char ch) const {
+            return links[ch -'a'] != nullptr;
+        }
+
+        void put(char ch, unique_ptr<TrieNode> node) {
+            links[ch -'a'] = move(node);
+        }
+
+        void make_node(char ch) {
+            links[ch -'a'] = make_unique<TrieNode>();
+        }
+
+
+        [[nodiscard]] const unique_ptr<TrieNode> & get_node(char ch) const  {
+            return links.at(ch -'a');
+        }
+
+    };
+
+    static const unique_ptr<TrieNode> buildTrie(vector<string>& words) {
+        auto root = make_unique<TrieNode>();
+        for (const string& w : words) {
+            TrieNode * curr = root.get();
+            for (char c : w) {
+                if( ! curr->has_key(c)) { curr->make_node(c); }
+                curr = curr->get_node(c).get();
+            }
+            curr->word = w;
+        }
+        return root;
+    }
+
+    static vector<string> findWords(vector<vector<char>>& board, vector<string>& words) {
+        vector<string> result;
+        int board_x_size = board.size();
+        int board_y_size = board[0].size();
+        auto root = buildTrie(words);
+        for(int i = 0; i < board_x_size; ++i) {
+            for (int j = 0; j < board_y_size; ++j) {
+                dfs(board, i, j, root.get(), result);
+            }
+        }
+        return result;
+    }
+
+    static void dfs(vector<vector<char>>& board, int i, int j, TrieNode * curr, vector<string>& out) {
+        char c = board[i][j];
+        if(c == '#' || (!curr->has_key(c)) ) { return; }
+        curr = curr->get_node(c).get();
+        if (!curr->word.empty()) {
+            out.push_back(curr->word);
+            curr->word.clear();
+        }
+        board[i][j] = '#';
+        if(i > 0) dfs(board, i - 1, j , curr, out);
+        if(j > 0) dfs(board, i, j - 1, curr, out);
+        if(i < board.size() - 1) dfs(board, i + 1, j, curr, out);
+        if(j < board[0].size() - 1) dfs(board, i, j + 1, curr, out);
+        board[i][j] = c;
+    }
+};
+
+
 class Trie {
 /*
     struct TrieNode {
@@ -714,7 +784,7 @@ int main() {
 */
     vector<vector<char>> board {{'o','a','a','n'},{'e','t','a','e'},{'i','h','k','r'},{'i','f','l','v'}};
     vector<string> words {"oath","pea","eat","rain"};
-    auto result = Solution::findWords(board, words);
+    auto result = Solution2::findWords(board, words);
 
     print_vector(result);
 
