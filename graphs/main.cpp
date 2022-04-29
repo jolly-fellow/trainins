@@ -46,9 +46,9 @@ node_t *clone_graph(node_t *n) {
 
 
 
-node_t * init_graph(const vector<vector<int>> & adjacent_list) {
+node_t * init_graph(const vector<vector<int>> & adjacency_list) {
 
-    size_t al_size = adjacent_list.size();
+    size_t al_size = adjacency_list.size();
     vector<node_t *> nodes(al_size);
 
     if(0 == al_size) {
@@ -60,7 +60,7 @@ node_t * init_graph(const vector<vector<int>> & adjacent_list) {
     }
 
     for(int i = 0; i < al_size; ++i ) {
-        for(auto n: adjacent_list[i]) {
+        for(auto n: adjacency_list[i]) {
             nodes[i]->neighbors.push_back(nodes[n - 1]);
         }
     }
